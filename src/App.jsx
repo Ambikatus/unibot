@@ -163,27 +163,57 @@ useEffect(() => {
     return "Lo siento, no tengo información sobre ese tema. Intenta preguntar sobre programación, bases de datos, IA, IHC, matemáticas, ciberseguridad, normas APA o técnicas de estudio.";
   };
 
-  const sendMessage = () => {
-    if (!input.trim()) return;
+  const sendMessage = async () => {
+  if (!input.trim()) return;
 
-    const response = getResponse(input);
+  const userMessage = input;
 
-    setMessages([
-  ...messages,
-  {
-    sender: "user",
-    text: input,
-    time: new Date().toLocaleTimeString()
-  },
-  {
-    sender: "bot",
-    text: response,
-    time: new Date().toLocaleTimeString()
+  setMessages((prev) => [
+    ...prev,
+    {
+      sender: "user",
+      text: userMessage,
+      time: new Date().toLocaleTimeString(),
+    },
+  ]);
+
+  setInput("");
+
+  try {
+    const response = await fetch(
+      "http://localhost:3001/chat",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: userMessage,
+        }),
+      }
+    );
+
+    const data = await response.json();
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: "bot",
+        text: data.reply,
+        time: new Date().toLocaleTimeString(),
+      },
+    ]);
+  } catch (error) {
+    setMessages((prev) => [
+      ...prev,
+      {
+        sender: "bot",
+        text: "No pude conectar con la IA.",
+        time: new Date().toLocaleTimeString(),
+      },
+    ]);
   }
-]);
-
-    setInput("");
-  };
+};
 
   return (
     <div
